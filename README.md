@@ -6,7 +6,7 @@ Pick the machine you are about to take offline. Cascade walks the graph and tell
 jobs die, which of them cannot come back, and who to tell.
 
 Live demo: TBD
-Repo: TBD
+Repo: https://github.com/Thezone-1/cascade
 
 ## Why a graph database?
 
@@ -118,7 +118,7 @@ There is a test for exactly that.
 
 First create the database. At https://console.cognodb.com/signup, sign up and create a free
 `c0` instance in the region nearest you. It provisions in under a minute. You are given a
-connection URI of the form `bolt+s://<instance-id>.databases.cognodb.cloud`, the username
+connection URI of the form `bolt+s://<instance-id>.databases.cognodb.com`, the username
 `cognodb` and a generated password shown exactly once, so copy it straight into `.env.local`.
 
 Then:
@@ -130,7 +130,7 @@ Then:
 
 `.env.local` needs three values, all from the CognoDB console, and it is gitignored:
 
-    COGNODB_URI=bolt+s://db-xxxxxxxx.databases.cognodb.cloud
+    COGNODB_URI=bolt+s://db-xxxxxxxx.databases.cognodb.com
     COGNODB_USER=cognodb
     COGNODB_PASSWORD=
 
