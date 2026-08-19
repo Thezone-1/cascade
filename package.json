@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "seed": "tsx scripts/seed.ts",
+    "verify": "tsx scripts/verify.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test lib/simulate.test.ts"
   },

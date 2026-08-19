@@ -137,6 +137,10 @@ Then:
 `GET /api/health` returns 200 when the database answers and 503 with the driver error when it
 does not, which is the first thing to check if a page shows the setup notice.
 
+`npm run verify` runs every query in `lib/queries.ts` against the live instance, prints row
+counts and timings, and then simulates a drain on the six most shared machines. It is the
+fastest way to tell whether a problem is the database or the app.
+
 ## Screens
 
 Three screens, each one answering the next question an on-call engineer asks.
