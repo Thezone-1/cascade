@@ -12,6 +12,10 @@ const REASON: Record<EvictionReason, string> = {
   preempted: 'preempted by a requeued gang',
 };
 
+function count(value: number, noun: string) {
+  return `${value} ${value === 1 ? noun : `${noun}s`}`;
+}
+
 export default async function DrainPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
 
@@ -40,9 +44,9 @@ export default async function DrainPage({ params }: { params: Promise<{ name: st
 
       <h1>Draining {name}</h1>
       <p className="lede">
-        {result.directPods} pods actually live on this machine. Once the graph is walked, {result.evicted.length} pods
-        stop running and {result.broken.length} jobs die outright. The damage settles after {result.rounds}{' '}
-        {result.rounds === 1 ? 'round' : 'rounds'}.
+        {count(result.directPods, 'pod')} actually live on this machine. Once the graph is walked,{' '}
+        {count(result.evicted.length, 'pod')} stop running and {count(result.broken.length, 'job')} die
+        outright. The damage settles after {count(result.rounds, 'round')}.
       </p>
 
       <div className="statbar">
@@ -78,7 +82,7 @@ export default async function DrainPage({ params }: { params: Promise<{ name: st
             <div className="round" key={entry.round}>
               <div className="k">round {entry.round}</div>
               <div className="v">
-                {entry.pods.length} pods, {entry.gangs.length} gangs
+                {count(entry.pods.length, 'pod')}, {count(entry.gangs.length, 'gang')}
               </div>
               <div className="why">
                 {entry.round === 1
