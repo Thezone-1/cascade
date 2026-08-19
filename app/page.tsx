@@ -52,6 +52,25 @@ export default async function Home() {
         jobs die, which of them cannot come back, and who to tell.
       </p>
 
+      <dl className="primer">
+        <div>
+          <dt>node</dt>
+          <dd>one physical machine, eight GPUs bolted into it</dd>
+        </div>
+        <div>
+          <dt>pod</dt>
+          <dd>one running process, holding one of those GPUs</dd>
+        </div>
+        <div>
+          <dt>gang</dt>
+          <dd>one training job. It needs every one of its pods at once, or none of them run</dd>
+        </div>
+        <div>
+          <dt>queue</dt>
+          <dd>a team's share of the cluster, arranged in a tree</dd>
+        </div>
+      </dl>
+
       <div className="statbar">
         <div className="stat">
           <div className="k">Nodes</div>

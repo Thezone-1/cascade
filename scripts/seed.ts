@@ -43,6 +43,16 @@ const QUEUES = [
   { name: 'batch-sweeps', parent: 'root-batch', quota: 70, tier: 'besteffort', team: 'perception' },
 ];
 
+const CONSTRAINTS = [
+  'CREATE CONSTRAINT node_key IF NOT EXISTS FOR (x:Node) REQUIRE x.name IS UNIQUE',
+  'CREATE CONSTRAINT gpu_key IF NOT EXISTS FOR (x:GPU) REQUIRE x.id IS UNIQUE',
+  'CREATE CONSTRAINT pod_key IF NOT EXISTS FOR (x:Pod) REQUIRE x.name IS UNIQUE',
+  'CREATE CONSTRAINT gang_key IF NOT EXISTS FOR (x:Gang) REQUIRE x.name IS UNIQUE',
+  'CREATE CONSTRAINT queue_key IF NOT EXISTS FOR (x:Queue) REQUIRE x.name IS UNIQUE',
+  'CREATE CONSTRAINT team_key IF NOT EXISTS FOR (x:Team) REQUIRE x.name IS UNIQUE',
+  'CREATE CONSTRAINT pvc_key IF NOT EXISTS FOR (x:PVC) REQUIRE x.name IS UNIQUE',
+];
+
 const LEAF_QUEUES = QUEUES.filter((q) => q.parent !== null).map((q) => q.name);
 const ZONES = ['ap-south-1a', 'ap-south-1b', 'ap-south-1c'];
 const GPU_MODELS = ['H100-80GB', 'A100-40GB'];
@@ -192,14 +202,8 @@ async function main() {
   const session = driver.session();
   try {
     await session.executeWrite((tx) => tx.run('MATCH (n) DETACH DELETE n'));
-    for (const label of ['Node', 'GPU', 'Pod', 'Gang', 'Queue', 'Team', 'PVC']) {
-      const key = label === 'GPU' ? 'id' : 'name';
-      const name = `${label.toLowerCase()}_key`;
-      await session.executeWrite((tx) =>
-        tx.run(
-          `CREATE CONSTRAINT ${name} IF NOT EXISTS FOR (x:${label}) REQUIRE x.${key} IS UNIQUE`
-        )
-      );
+    for (const constraint of CONSTRAINTS) {
+      await session.executeWrite((tx) => tx.run(constraint));
     }
   } finally {
     await session.close();
