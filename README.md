@@ -5,7 +5,7 @@ A drain-impact simulator for a gang-scheduled GPU cluster, built on CognoDB.
 Pick the machine you are about to take offline. Cascade walks the graph and tells you which
 jobs die, which of them cannot come back, and who to tell.
 
-Live demo: TBD
+Live demo: https://cascade-sable.vercel.app
 Repo: https://github.com/Thezone-1/cascade
 
 ## Why a graph database?
