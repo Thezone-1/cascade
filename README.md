@@ -8,7 +8,7 @@ jobs die, which of them cannot come back, and who to tell.
 Live demo: TBD
 Repo: TBD
 
-## Why this belongs in a graph
+## Why a graph database?
 
 GPU training jobs are gang scheduled, which means all or nothing. A job with 8 workers needs
 all 8 running at once, so losing a single worker kills the other 7. Those 7 release their GPUs,
@@ -21,7 +21,44 @@ depends on the shape of the relationships: how gangs are spread across machines,
 queue tree is, who preempts whom. You cannot answer "what breaks if I drain gpu-node-042" by
 counting rows. You have to follow edges until you stop finding new ones.
 
+What this gains over a relational schema, concretely:
+
+- The blast radius query has no fixed join depth. In SQL it is a recursive CTE per relationship
+  type, rewritten every time the topology gains a level. Here it is one variable-length pattern.
+- Quota rolls up a queue tree whose depth is data, not schema. `[:CHILD_OF*0..]` does not care
+  how deep it goes.
+- The five-hop ownership question, "who do I page about this machine", is one pattern instead of
+  four joins across two junction tables.
+- Gang quorum needs a traversal and an aggregate over the traversal in the same breath. The
+  graph gives me the membership set and the count together.
+
 ## Data model
+
+```mermaid
+graph LR
+  Pod -- SCHEDULED_ON --> Node
+  Pod -- USES --> GPU
+  GPU -- ON --> Node
+  Pod -- MEMBER_OF --> Gang
+  Pod -- MOUNTS --> PVC
+  PVC -- BOUND_TO --> Node
+  Gang -- SUBMITTED_TO --> Queue
+  Queue -- CHILD_OF --> Queue
+  Queue -- OWNED_BY --> Team
+  Gang -- PREEMPTS --> Gang
+```
+
+| Label | Key properties |
+| --- | --- |
+| `Node` | `name`, `zone`, `status` |
+| `GPU` | `id`, `model`, `index`, `allocated` |
+| `Pod` | `name`, `namespace`, `phase` |
+| `Gang` | `name`, `minMember`, `size`, `priority`, `kind` |
+| `Queue` | `name`, `quota`, `tier` |
+| `Team` | `name`, `contact` |
+| `PVC` | `name`, `zonal`, `storageClass` |
+
+As patterns:
 
     (:Pod)-[:SCHEDULED_ON]->(:Node)
     (:Pod)-[:USES]->(:GPU)-[:ON]->(:Node)
@@ -79,12 +116,19 @@ There is a test for exactly that.
 
 ## Running it
 
+First create the database. At https://console.cognodb.com/signup, sign up and create a free
+`c0` instance in the region nearest you. It provisions in under a minute. You are given a
+connection URI of the form `bolt+s://<instance-id>.databases.cognodb.cloud`, the username
+`cognodb` and a generated password shown exactly once, so copy it straight into `.env.local`.
+
+Then:
+
     npm install
-    cp .env.example .env.local     # fill in your CognoDB instance
+    cp .env.example .env.local     # paste the three values from the console
     npm run seed
     npm run dev
 
-`.env.local` needs three values, all from the CognoDB console:
+`.env.local` needs three values, all from the CognoDB console, and it is gitignored:
 
     COGNODB_URI=bolt+s://db-xxxxxxxx.databases.cognodb.cloud
     COGNODB_USER=cognodb
@@ -92,6 +136,32 @@ There is a test for exactly that.
 
 `GET /api/health` returns 200 when the database answers and 503 with the driver error when it
 does not, which is the first thing to check if a page shows the setup notice.
+
+## Screens
+
+Three screens, each one answering the next question an on-call engineer asks.
+
+**Cluster.** Every machine with its allocation, how many pods it carries and how many separate
+jobs one drain would touch. Below it, the queue tree with quota rolled up through however many
+levels the data has.
+
+![Cluster overview](docs/screens/cluster.png)
+
+**Node.** What actually runs on this machine, resolved all the way out to the owning team, plus
+the count of zonal volumes pinned here, which is the number that decides whether a drain is
+routine or not.
+
+![Node detail](docs/screens/node.png)
+
+**Drain.** The cascade. Pods that stop, jobs that die and why, which pods cannot restart
+anywhere, and the list of teams to tell.
+
+![Drain cascade](docs/screens/drain.png)
+
+Empty, loading and error states are real screens, not afterthoughts: a drain that breaks nothing
+says so, every route has a skeleton while the graph is being walked, and an unreachable database
+renders a setup notice with the driver error and a pointer at `/api/health` instead of a stack
+trace.
 
 ## The seed
 

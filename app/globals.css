@@ -303,3 +303,42 @@ footer {
   border-top: 1px solid var(--line);
   padding-top: 12px;
 }
+
+.skeleton {
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  padding: 1px 0;
+}
+
+.skeleton span {
+  display: block;
+  height: 30px;
+  background: linear-gradient(90deg, var(--panel) 0%, var(--panel-2) 50%, var(--panel) 100%);
+  background-size: 200% 100%;
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton span {
+    animation: none;
+    background: var(--panel-2);
+  }
+}
+
+button.cta {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
